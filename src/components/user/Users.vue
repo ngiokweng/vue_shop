@@ -53,14 +53,22 @@
               icon="el-icon-edit"
               @click="showDialogEdit(scope.row.id)"
             ></el-button>
-            <el-button type="danger" icon="el-icon-delete" @click="removeUser(scope.row.id)"></el-button>
+            <el-button
+              type="danger"
+              icon="el-icon-delete"
+              @click="removeUser(scope.row.id)"
+            ></el-button>
             <el-tooltip
               effect="dark"
               content="設置角色"
               placement="top"
               :enterable="false"
             >
-              <el-button type="warning" icon="el-icon-setting"></el-button>
+              <el-button
+                type="warning"
+                icon="el-icon-setting"
+                @click="setRole(scope.row)"
+              ></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -108,12 +116,18 @@
         </span>
       </el-dialog>
       <!-- 修改用戶的對話框 -->
-      <el-dialog title="修改用戶" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
+      <el-dialog
+        title="修改用戶"
+        :visible.sync="editDialogVisible"
+        width="50%"
+        @close="editDialogClosed"
+      >
         <el-form
           :model="editForm"
           :rules="editFormRules"
           ref="editFormRef"
-          label-width="70px">
+          label-width="70px"
+        >
           <el-form-item label="用戶名">
             <el-input v-model="editForm.username" disabled></el-input>
           </el-form-item>
@@ -126,7 +140,36 @@
         </el-form>
         <span slot="footer" class="dialog-footer">
           <el-button @click="editDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="editUserInfo">確定</el-button
+          <el-button type="primary" @click="editUserInfo">確定</el-button>
+        </span>
+      </el-dialog>
+      <!-- 設置用戶角色的對話框 -->
+      <el-dialog
+        title="設置角色"
+        :visible.sync="setRoleDialogVisible"
+        width="50%"
+        @close="setRoleDialogClosed"
+      >
+        <div>
+          <p>當前的用戶: {{ userInfo.username }}</p>
+          <p>當前的角色: {{ userInfo.role_name }}</p>
+          <p>
+            分配新角色:
+            <el-select v-model="selectRoleId" placeholder="請選擇">
+              <el-option
+                v-for="item in roleList"
+                :key="item.id"
+                :label="item.roleName"
+                :value="item.id"
+              >
+              </el-option>
+            </el-select>
+          </p>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="setRoleDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="allotRole"
+            >確定</el-button
           >
         </span>
       </el-dialog>
@@ -197,7 +240,11 @@ export default {
           { required: true, message: '請輸入電話', trigger: 'blur' },
           { validator: checkMobile, trigger: 'blur' }
         ]
-      }
+      },
+      setRoleDialogVisible: false,
+      userInfo: {},
+      roleList: [],
+      selectRoleId: ''
     }
   },
   methods: {
@@ -260,13 +307,17 @@ export default {
       this.$refs.editFormRef.clearValidate()
     },
     editUserInfo() {
-      this.$refs.editFormRef.validate(async valid => {
+      this.$refs.editFormRef.validate(async (valid) => {
         if (!valid) {
           return false
         }
-        const { data: res } = await this.$http.put('users/' + this.editForm.id, {
-          email: this.editForm.email, mobile: this.editForm.mobile
-        })
+        const { data: res } = await this.$http.put(
+          'users/' + this.editForm.id,
+          {
+            email: this.editForm.email,
+            mobile: this.editForm.mobile
+          }
+        )
         if (res.meta.status !== 200) {
           return this.$message.error('更新用戶信息失敗')
         }
@@ -280,21 +331,52 @@ export default {
         confirmButtonText: '確定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
-        this.$http.delete('users/' + id)
-          .then(() => {
-            this.$message.success('刪除成功')
-            this.getUserList()
-          })
-          .catch(() => {
-            this.$message.error('刪除失敗')
-          })
-      }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        })
       })
+        .then(() => {
+          this.$http
+            .delete('users/' + id)
+            .then(() => {
+              this.$message.success('刪除成功')
+              this.getUserList()
+            })
+            .catch(() => {
+              this.$message.error('刪除失敗')
+            })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+    },
+    async setRole(userInfo) {
+      this.userInfo = userInfo
+      const { data: res } = await this.$http.get('roles')
+      if (res.meta.status !== 200) {
+        return this.$message.error('獲取角色列表失敗')
+      }
+      this.roleList = res.data
+      this.setRoleDialogVisible = true
+    },
+    async allotRole() {
+      if (!this.selectRoleId) {
+        return this.$message.error('請選擇角色')
+      }
+      const { data: res } = await this.$http.put(`users/${this.userInfo.id}/role`, { rid: this.selectRoleId })
+      console.log(res)
+      if (res.meta.status !== 200) {
+        console.log(this.userInfo.id)
+        console.log(this.selectRoleId)
+        return this.$message.error('分配角色失敗')
+      }
+      this.$message.success('分配角色成功')
+      this.getUserList()
+      this.setRoleDialogVisible = false
+    },
+    setRoleDialogClosed() {
+      this.selectRoleId = ''
+      this.userInfo = {}
     }
   },
   created() {
