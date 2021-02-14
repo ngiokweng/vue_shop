@@ -13,8 +13,8 @@ import 'quill/dist/quill.bubble.css' // for bubble theme
 
 Vue.use(VueQuillEditor)
 // axios.defaults.baseURL = 'http://timemeetyou.com:8889/api/private/v1/'
-// axios.defaults.baseURL = 'https://www.liulongbin.top:8888/api/private/v1/'
-axios.defaults.baseURL = 'http://www.ysqorz.top:8888/api/private/v1/'
+axios.defaults.baseURL = 'https://www.liulongbin.top:8888/api/private/v1/'
+// axios.defaults.baseURL = 'http://www.ysqorz.top:8888/api/private/v1/'
 // axios擦攔截器
 axios.interceptors.request.use(config => {
   config.headers.Authorization = window.sessionStorage.getItem('token')
@@ -29,7 +29,6 @@ Vue.filter('dateFormat', function(value, format = 'YYYY-MM-DD HH:mm:ss') {
 })
 
 Vue.component('tree-table', TreeTable)
-console.log(Moment)
 new Vue({
   render: h => h(App),
   router

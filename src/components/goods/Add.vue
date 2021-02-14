@@ -194,7 +194,6 @@ export default {
         if (res.meta.status !== 200) {
           return this.$message.error('獲取參數列表失敗')
         }
-        console.log(res.data)
         res.data.forEach((item) => {
           item.attr_vals =
             item.attr_vals.length === 0 ? [] : item.attr_vals.split(' ')
@@ -211,14 +210,12 @@ export default {
         if (res.meta.status !== 200) {
           return this.$message.error('獲取參數列表失敗')
         }
-        console.log(res.data)
         this.onlyTableData = res.data
       }
     },
     // 處理預覽圖片
     handlePreview(file) {
       this.previewImg = file.response.data.url
-      console.log(this.previewImg)
       this.previewVisible = true
     },
     // 處理刪除圖片
@@ -253,7 +250,6 @@ export default {
           }
           form.attrs.push(newInfo)
         })
-        console.log(form)
         const { data: res } = await this.$http.post('goods', form)
         if (res.meta.status !== 201) {
           return this.$message.error('添加商品失敗')
