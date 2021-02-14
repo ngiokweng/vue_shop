@@ -16,3 +16,10 @@ body{
 .el-table{
     margin-top: 15px;
 }
+.el-steps{
+    margin: 15px;
+    justify-content: center;
+}
+.ql-editor {
+    min-height: 500px;
+}
